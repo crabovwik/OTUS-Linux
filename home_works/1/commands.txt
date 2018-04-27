@@ -1,0 +1,20 @@
+cd
+sudo yum install wget
+wget https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.14.36.tar.xz
+tar xf linux-4.14.36.tar.xz
+sudo cp /boot/config* .config
+sudo yum install gcc
+make oldconfig
+Enter, Enter, Enter, Enter...
+sudo yum install 
+sudo yum install libelf-dev libelf-devev elfutils-libelf-devel
+sudo yum install bc
+sudo yum install openssl-devel
+sudo yum install perl
+make
+sudo mkdir /lib/modules/4.14.36
+sudo make modules_install
+sudo make install
+
+[vagrant@otuslinux linux-4.14.36]$ ls /lib/modules
+3.10.0-693.21.1.el7.x86_64  4.14.36
