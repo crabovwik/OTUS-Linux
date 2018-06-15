@@ -1,0 +1,53 @@
+# -*- mode: ruby -*-
+# vim: set ft=ruby :
+
+MACHINES = {
+  :otuslinux => {
+        :box_name => "centos/7",
+        :ip_addr => '192.168.11.101'
+  },
+}
+
+autorun_raid_script_path = './scripts/init_raid.sh'
+
+file_to_disk1 = './disks/large_disk_1.vdi'
+file_to_disk2 = './disks/large_disk_2.vdi'
+
+Vagrant.configure("2") do |config|
+
+  MACHINES.each do |boxname, boxconfig|
+
+      config.vm.define boxname do |box|
+
+          config.vm.provision :shell, path: autorun_raid_script_path
+
+          box.vm.box = boxconfig[:box_name]
+          box.vm.host_name = boxname.to_s
+
+          #box.vm.network "forwarded_port", guest: 3260, host: 3260+offset
+
+          box.vm.network "private_network", ip: boxconfig[:ip_addr]
+
+          box.vm.provider :virtualbox do |vb|
+            vb.customize ["modifyvm", :id, "--memory", "1024"]
+            vb.memory = "1024"
+            
+            unless File.exist?(file_to_disk1)
+              vb.customize ['createhd', '--filename', file_to_disk1, '--variant', 'Fixed', '--size', 1 * 1024]
+            end
+
+            unless File.exist?(file_to_disk2)
+              vb.customize ['createhd', '--filename', file_to_disk2, '--variant', 'Fixed', '--size', 1 * 1024]
+            end
+
+            vb.customize ['storageattach', :id,  '--storagectl', 'IDE', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', file_to_disk1]
+            vb.customize ['storageattach', :id,  '--storagectl', 'IDE', '--port', 1, '--device', 1, '--type', 'hdd', '--medium', file_to_disk2]
+          end
+
+          box.vm.provision :shell do |s|
+             s.inline = 'mkdir -p ~root/.ssh; cp ~vagrant/.ssh/auth* ~root/.ssh'
+          end
+
+      end
+  end
+end
